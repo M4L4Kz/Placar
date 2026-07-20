@@ -33,6 +33,59 @@ let estadoTorneio = {
 
 // --- ROTAS HTTP (REST API) ---
 
+// 1. ROTA PARA RESETAR TOTALMENTE O TORNEIO
+app.post('/api/resetar', (req, res) => {
+  // Restaura o estado inicial do sistema
+  estadoTorneio = {
+    config: {
+      totalCompetidores: 8,
+      status: 'configuracao'
+    },
+    competidores: [],
+    batalhas: {},
+    batalhaAtual: null
+  };
+
+  // Notifica todas as telas que o torneio foi limpo
+  io.emit('atualizacao_torneio', estadoTorneio);
+  return res.json({ mensagem: 'Torneio resetado com sucesso.', estado: estadoTorneio });
+});
+
+// 2. ROTA PARA PULAR A BATALHA ATUAL (JOGA PARA O FINAL DA FILA)
+app.post('/api/pular-batalha', (req, res) => {
+  const idAtual = estadoTorneio.batalhaAtual;
+
+  if (!idAtual || !estadoTorneio.batalhas[idAtual]) {
+    return res.status(400).json({ erro: 'Não há batalha ativa para pular.' });
+  }
+
+  const batalhaAtual = estadoTorneio.batalhas[idAtual];
+  const roundAtual = batalhaAtual.round;
+
+  // Busca todas as batalhas do mesmo round que ainda NÃO têm vencedor
+  const batalhasDoRoundSemVencedor = Object.values(estadoTorneio.batalhas).filter(
+    b => b.round === roundAtual && !b.vencedor
+  );
+
+  if (batalhasDoRoundSemVencedor.length <= 1) {
+    return res.status(400).json({ erro: 'Não há outras batalhas pendentes neste round para trocar a ordem.' });
+  }
+
+  // Encontra a próxima batalha pendente do mesmo round para assumir o palco agora
+  const proximaPendente = batalhasDoRoundSemVencedor.find(b => b.id !== idAtual);
+
+  if (proximaPendente) {
+    // A batalha atual troca de posição com a próxima pendente
+    estadoTorneio.batalhaAtual = proximaPendente.id;
+
+    // Notifica as telas via WebSocket
+    io.emit('atualizacao_torneio', estadoTorneio);
+    return res.json({ mensagem: 'Batalha enviada para o final da fila do round.', estado: estadoTorneio });
+  }
+
+  return res.status(400).json({ erro: 'Não foi possível reordenar as batalhas.' });
+});
+
 // Rota para o M.C. salvar a configuração inicial e a lista de competidores
 app.post('/api/configurar', (req, res) => {
   const { totalCompetidores, competidores } = req.body;
@@ -81,13 +134,13 @@ app.post('/api/sortear', (req, res) => {
   return res.json({ mensagem: 'Sorteio realizado com sucesso!', estado: estadoTorneio });
 });
 
-// Rota para o jurado enviar o voto (via celular na rede local)
+// Rota simplificada para o jurado enviar o voto
 app.post('/api/votar', (req, res) => {
-  const { juradoId, voto } = req.body; // voto deve ser 'player1' ou 'player2'
+  const { juradoId, voto } = req.body;
   const idBatalha = estadoTorneio.batalhaAtual;
 
-  if (estadoTorneio.config.status !== 'em_andamento' && estadoTorneio.config.status !== 'sorteado') {
-    return res.status(400).json({ erro: 'O torneio não está em fase de batalhas.' });
+  if (estadoTorneio.config.status !== 'em_andamento') {
+    return res.status(400).json({ erro: 'O torneio não está em fase de batalhas ativas.' });
   }
 
   if (!idBatalha || !estadoTorneio.batalhas[idBatalha]) {
@@ -96,54 +149,38 @@ app.post('/api/votar', (req, res) => {
 
   const batalha = estadoTorneio.batalhas[idBatalha];
 
-  // Verifica se o voto é válido
   if (voto !== 'player1' && voto !== 'player2') {
-    return res.status(400).json({ erro: 'Voto inválido. Escolha player1 ou player2.' });
+    return res.status(400).json({ erro: 'Voto inválido.' });
   }
 
-  // Registrar ou atualizar o voto do jurado (limite de 3 jurados)
-  // Procurar se esse jurado já votou nesta batalha para atualizar, ou adicionar novo
+  // Registra ou atualiza o voto do jurado
   const votoExistenteIndex = batalha.votos.findIndex(v => v.juradoId === juradoId);
-
   if (votoExistenteIndex !== -1) {
-    batalha.votos[votoExistenteIndex].escolha = voto;
+    batalha.votoExistenteIndex = voto; // atualiza se já votou
   } else {
     if (batalha.votos.length >= 3) {
-      return res.status(400).json({ erro: 'Esta batalha já atingiu o limite máximo de 3 votos.' });
+      return res.status(400).json({ erro: 'Esta batalha já possui 3 votos.' });
     }
     batalha.votos.push({ juradoId, escolha: voto });
   }
 
-  // Se o status do torneio ainda era 'sorteado', vira 'em_andamento' no primeiro voto
-  if (estadoTorneio.config.status === 'sorteado') {
-    estadoTorneio.config.status = 'em_andamento';
-  }
-
-  // Avisa em tempo real que um voto entrou (o painel do M.C. e o Telão podem mostrar estrelas/votos mudando)
-  io.emit('atualizacao_torneio', estadoTorneio);
-
-  // Se já temos os 3 votos, computamos o vencedor imediatamente
+  // Se bateu 3 votos, calcula o vencedor na hora
   if (batalha.votos.length === 3) {
     const contagem = batalha.votos.reduce((acc, v) => {
       acc[v.escolha] = (acc[v.escolha] || 0) + 1;
       return acc;
     }, { player1: 0, player2: 0 });
 
-    const chaveVencedor = contagem.player1 > contagem.player2 ? 'player1' : 'player2';
-    batalha.vencedor = chaveVencedor; // Salva quem ganhou ('player1' ou 'player2')
-
-    // Avisa que a votação encerrou e o resultado está pronto
-    io.emit('resultado_batalha', {
-      batalhaId: idBatalha,
-      vencedor: batalha[chaveVencedor],
-      estado: estadoTorneio
-    });
+    batalha.vencedor = contagem.player1 > contagem.player2 ? 'player1' : 'player2';
   }
 
-  return res.json({ mensagem: 'Voto computado!', estado: estadoTorneio });
+  // Dispara o estado atualizado para todas as telas via WebSocket
+  io.emit('atualizacao_torneio', estadoTorneio);
+
+  return res.json({ mensagem: 'Voto computado com sucesso!', estado: estadoTorneio });
 });
 
-// Rota para o M.C. (ou o frontend após os 5 segundos) avançar o torneio
+// Rota direta para o M.C. avançar o torneio de forma manual
 app.post('/api/proxima-batalha', (req, res) => {
   const idBatalhaAtual = estadoTorneio.batalhaAtual;
   
@@ -160,11 +197,9 @@ app.post('/api/proxima-batalha', (req, res) => {
   const nomeVencedor = batalhaAtual[batalhaAtual.vencedor];
   const proximaBatalhaId = batalhaAtual.proximaBatalha;
 
-  // 1. Se existir uma próxima batalha na árvore (não é a final do torneio), joga o vencedor para lá
+  // Injeta o vencedor na vaga correta da próxima rodada
   if (proximaBatalhaId && estadoTorneio.batalhas[proximaBatalhaId]) {
     const proximaBatalha = estadoTorneio.batalhas[proximaBatalhaId];
-    
-    // Preenche a vaga disponível (player1 ou player2) na próxima fase
     if (!proximaBatalha.player1) {
       proximaBatalha.player1 = nomeVencedor;
     } else if (!proximaBatalha.player2) {
@@ -172,33 +207,38 @@ app.post('/api/proxima-batalha', (req, res) => {
     }
   }
 
-  // 2. Encontrar qual é a PRÓXIMA batalha cronológica que precisa acontecer no Round atual ou seguinte
-  // Estratégia: Pegamos o número da batalha atual e tentamos ir para a próxima (ex: b1 -> b2 -> b3)
+  // Calcula cronologicamente qual é a próxima batalha ativa
   const [roundAtual, numeroBatalhaAtual] = idBatalhaAtual.replace('r', '').split('_b').map(Number);
-  
   let proximoIdBatalhaAtiva = `r${roundAtual}_b${numeroBatalhaAtual + 1}`;
 
-  // Se não existir a próxima batalha no mesmo round, significa que o round acabou! Vamos para a b1 do próximo round
   if (!estadoTorneio.batalhas[proximoIdBatalhaAtiva]) {
     proximoIdBatalhaAtiva = `r${roundAtual + 1}_b1`;
   }
 
-  // Se a próxima batalha calculada existir no sistema, ela vira a batalha ativa atual
   if (estadoTorneio.batalhas[proximoIdBatalhaAtiva]) {
     estadoTorneio.batalhaAtual = proximoIdBatalhaAtiva;
   } else {
-    // Se não existir um próximo round/batalha, o torneio acabou! (Chegamos ao fim da grande final)
     estadoTorneio.batalhaAtual = null;
     estadoTorneio.config.status = 'finalizado';
   }
 
-  // Dispara o novo estado atualizado com o chaveamento preenchido e a nova batalha na agulha
+  // Envia o estado atualizado com as chaves preenchidas e o novo ponteiro de batalha ativa
   io.emit('atualizacao_torneio', estadoTorneio);
 
-  return res.json({ 
-    mensagem: estadoTorneio.config.status === 'finalizado' ? 'Torneio Finalizado!' : 'Avançado para a próxima batalha.', 
-    estado: estadoTorneio 
-  });
+  return res.json({ mensagem: 'Torneio avançado.', estado: estadoTorneio });
+});
+
+// Rota para o M.C. dar o pontapé inicial após o sorteio
+app.post('/api/iniciar-batalhas', (req, res) => {
+  if (estadoTorneio.config.status !== 'sorteado') {
+    return res.status(400).json({ erro: 'O torneio precisa estar sorteado para iniciar.' });
+  }
+
+  estadoTorneio.config.status = 'em_andamento';
+  estadoTorneio.batalhaAtual = 'r1_b1'; // Garante o foco na primeira batalha
+
+  io.emit('atualizacao_torneio', estadoTorneio);
+  return res.json({ mensagem: 'Batalhas iniciadas!', estado: estadoTorneio });
 });
 
 // Rota para buscar o estado atual (útil quando uma tela atualiza o navegador)

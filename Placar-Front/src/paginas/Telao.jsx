@@ -1,71 +1,92 @@
 import React from 'react';
-import logoImg from '../assets/logo-fbdd.png'; // <-- Puxa a sua logo na pasta assets
+import logoImg from '../assets/AirChairlogo.png';
 
 function Telao({ estado }) {
   const { status, totalCompetidores } = estado.config;
 
-  // Se o torneio ainda está em configuração, exibe a logo em destaque com estilo
   if (status === 'configuracao') {
     return (
-      <div className="telao-container">
-        <h1 className="titulo-street" style={{ fontSize: '3rem', marginBottom: '10px' }}>FBDD BREAKING</h1>
-        <p style={{ color: '#888', letterSpacing: '4px' }}>AGUARDANDO SORTEIO DAS CHAVES</p>
-        <img src={logoImg} alt="Logo FBDD" className="logo-intro" />
+      <div className="telao-jerio" style={{ paddingTop: '50px' }}>
+        <img src={logoImg} alt="Logo FBDD" className="jerio-logo-center" style={{ maxWidth: '280px', maxHeight: '280px' }} />
+        <h1 className="jerio-round-title" style={{ marginTop: '20px', fontSize: '2.5rem' }}>FBDD BREAKING</h1>
+        <p style={{ fontFamily: 'Permanent Marker', color: '#888', fontSize: '1.2rem', marginTop: '10px' }}>
+          AGUARDANDO SORTEIO DAS CHAVES
+        </p>
       </div>
     );
   }
 
-  // Descobre dinamicamente quantas rodadas existem (log2 de 8 = 3, 16 = 4, 32 = 5)
   const totalRodadas = Math.log2(totalCompetidores);
 
-  // Retorna o nome amigável da fase com base na rodada e total de competidores
-  const getNomeRodada = (round) => {
+  const getNomeFase = (round) => {
     const restante = totalCompetidores / Math.pow(2, round - 1);
-    if (restante === 2) return "🏆 GRANDE FINAL";
-    if (restante === 4) return "🔥 SEMIFINAL";
-    if (restante === 8) return "⚡ QUARTAS DE FINAL";
-    if (restante === 16) return "🚀 OITAVAS DE FINAL";
-    return `FASE DE ${restante}`;
+    if (restante === 2) return "FINAL";
+    if (restante === 4) return "SEMI FINAL";
+    if (restante === 8) return "TOP 8";
+    if (restante === 16) return "TOP 16";
+    return `TOP ${restante}`;
   };
 
-  // Renderiza as colunas do diagrama
-  const renderizarChaves = () => {
+  const renderizarChavesAlinhadas = () => {
     const colunas = [];
 
     for (let round = 1; round <= totalRodadas; round++) {
       const batalhasDoRound = Object.values(estado.batalhas).filter(b => b.round === round);
+      const isSemiFinal = getNomeFase(round) === "SEMI FINAL";
 
       colunas.push(
-        <div key={round} className="bracket-round">
-          <div className="round-title">{getNomeRodada(round)}</div>
-          
-          {batalhasDoRound.map(batalha => {
-            const isAtiva = estado.batalhaAtual ===  batalha.id;
-            
-            return (
-              <div key={batalha.id} className={`match-card ${isAtiva ? 'ativa' : ''}`}>
-                <div className={`match-player ${batalha.vencedor === 'player1' ? 'vencedor' : ''}`}>
-                  <span>{batalha.player1 || '—'}</span>
-                </div>
-                <div className={`match-player ${batalha.vencedor === 'player2' ? 'vencedor' : ''}`}>
-                  <span>{batalha.player2 || '—'}</span>
-                </div>
-                {!batalha.vencedor && <span className="vs-divider">VS</span>}
-              </div>
-            );
-          })}
+        <div key={round} className="jerio-column">
+          <div className="jerio-round-title">{getNomeFase(round)}</div>
+
+          <div className="jerio-battles-container">
+            {batalhasDoRound.map((batalha, index) => {
+              const isAtiva = estado.batalhaAtual === batalha.id;
+
+              return (
+                <React.Fragment key={batalha.id}>
+                  <div className={`jerio-match-box ${isAtiva ? 'ativa' : ''}`}>
+                    <div className={`jerio-player-slot ${batalha.vencedor === 'player1' ? 'vencedor' : ''}`}>
+                      {batalha.player1 || '—'}
+                    </div>
+                    <div className={`jerio-player-slot ${batalha.vencedor === 'player2' ? 'vencedor' : ''}`}>
+                      {batalha.player2 || '—'}
+                    </div>
+                  </div>
+
+                  {/* Se for a Semi Final e estiver no primeiro card, renderiza a logo exatamente no meio */}
+                  {isSemiFinal && index === 0 && (
+                    <div className="jerio-logo-wrapper">
+                      <img src={logoImg} alt="Logo FBDD" className="jerio-logo-center" />
+                    </div>
+                  )}
+                </React.Fragment>
+              );
+            })}
+          </div>
         </div>
       );
     }
+
+    // Coluna do Campeão + Troféu
+    const batalhaFinal = Object.values(estado.batalhas).find(b => b.round === totalRodadas);
+    const campeao = batalhaFinal && batalhaFinal.vencedor ? batalhaFinal[batalhaFinal.vencedor] : null;
+
+    colunas.push(
+      <div key="campeao" className="jerio-column jerio-champion-column">
+        <div className="trophy-icon">🏆</div>
+        <div className={`jerio-player-slot ${campeao ? 'vencedor' : ''}`} style={{ minWidth: '160px', padding: '15px' }}>
+          {campeao || '—'}
+        </div>
+      </div>
+    );
 
     return colunas;
   };
 
   return (
-    <div className="telao-container" style={{ maxWidth: '100%' }}>
-      <h2 style={{ marginBottom: '5px', fontSize: '24px' }}>CHAVEAMENTO DO CAMPEONATO</h2>
-      <div className="bracket-wrapper">
-        {renderizarChaves()}
+    <div className="telao-jerio">
+      <div className="jerio-bracket-wrapper">
+        {renderizarChavesAlinhadas()}
       </div>
     </div>
   );
