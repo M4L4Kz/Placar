@@ -1,4 +1,4 @@
-# 🕺 Breaking Battles — Sistema de Gerenciamento & Telão
+# 🕺 Breaking Battles — Gerenciamento de Torneiro
 
 ![React](https://img.shields.io/badge/React-20232A?style=for-the-badge&logo=react&logoColor=61DAFB)
 ![Vite](https://img.shields.io/badge/Vite-646CFF?style=for-the-badge&logo=vite&logoColor=white)
@@ -31,7 +31,6 @@ O **Breaking Battles** foi idealizado para modernizar a organização de campeon
 * 📺 **Telão Público:**
   * Visualização gráfica em tempo real do progresso das chaves (da esquerda para a direita).
   * Design minimalista e urbano (*street art style*).
-  * Integração da logo via CSS `mix-blend-mode` para mesclagem perfeita no *dark mode*.
   * Destaque automático para a batalha ativa e indicação do campeão com troféu 🏆.
   ->Ciclo de câmeras ativas na batalha
   ->Animação para chamada das batalhas
