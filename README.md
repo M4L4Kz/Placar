@@ -17,18 +17,25 @@ O **Breaking Battles** foi idealizado para modernizar a organização de campeon
 
 ## ✨ Funcionalidades Principais
 
-* 🎙️ **Painel do M.C. / Operador:**
+* 🎙️ **Painel do M.C. / Operador / VJ:**
   * Configuração de chaves (Top 16, Top 8, Top 4).
   * Inserção e sorteio de B-Boys / B-Girls.
   * Controle de batalhas ativas.
-* ⚖️ **Tela dos Jurados:**
+  <img width="1366" height="768" alt="10c47e63-a913-4a62-a6d4-6fe9d1092850" src="https://github.com/user-attachments/assets/3439be2c-7ff6-4f77-a17f-ba45ffcb2853" />
+
+* ⚖️ **Tela dos Jurados / Operador / VJ:**
   * Votação intuitiva e ágil para avaliação das entradas (*rounds*).
   * Envio de votos em tempo real.
+  <img width="580" height="636" alt="bcc94a41-c9c4-4ac0-8734-28dba72c1945" src="https://github.com/user-attachments/assets/11b2b362-8d4e-42f4-8e87-27621d66b134" />
+
 * 📺 **Telão Público:**
   * Visualização gráfica em tempo real do progresso das chaves (da esquerda para a direita).
   * Design minimalista e urbano (*street art style*).
   * Integração da logo via CSS `mix-blend-mode` para mesclagem perfeita no *dark mode*.
   * Destaque automático para a batalha ativa e indicação do campeão com troféu 🏆.
+  ->Ciclo de câmeras ativas na batalha
+  ->Animação para chamada das batalhas
+<img width="1327" height="645" alt="image" src="https://github.com/user-attachments/assets/85e172e2-ce62-4853-b50d-4369e61d9708" />
 
 ---
 
