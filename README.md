@@ -58,6 +58,60 @@ Certifique-se de ter instalado em sua máquina:
 
 ### Passo a Passo
 
-1. **Clone o repositório:**
-   ```bash
-   git clone [https://github.com/seu-usuario/breaking-battles.git](https://github.com/seu-usuario/breaking-battles.git)
+--------------------------------------------------------------------
+1. PRÉ-REQUISITOS
+--------------------------------------------------------------------
+Antes de começar, certifique-se de ter instalado em sua máquina:
+ - Node.js (Versão 16 ou superior)
+ - Git
+
+--------------------------------------------------------------------
+2. CLONANDO O REPOSITÓRIO
+--------------------------------------------------------------------
+Abra o seu terminal e execute o comando:
+
+   git clone https://github.com/seu-usuario/breaking-battles.git
+   cd breaking-battles
+
+
+--------------------------------------------------------------------
+3. INSTALANDO AS DEPENDÊNCIAS (npm install)
+--------------------------------------------------------------------
+O comando 'npm install' lê o arquivo package.json de cada pasta e 
+baixa automaticamente todas as bibliotecas do projeto.
+
+a) Instalação no Backend (Placar):
+   cd Placar
+   npm install
+
+b) Instalação no Frontend (placar-front):
+   cd ../placar-front
+   npm install
+
+
+--------------------------------------------------------------------
+4. EXECUTANDO A APLICAÇÃO
+--------------------------------------------------------------------
+Para o sistema funcionar, é necessário rodar o Backend e o 
+Frontend simultaneamente (em dois terminais diferentes).
+
+-> TERMINAL 1 (Backend - Servidor Node.js):
+   1. Abra a pasta do backend: cd Placar
+   2. Inicie o servidor:       node index.js  (ou npm run dev)
+
+-> TERMINAL 2 (Frontend - Interface React/Vite):
+   1. Abra a pasta do frontend: cd placar-front
+   2. Inicie a aplicação:      npm run dev
+
+
+--------------------------------------------------------------------
+5. ACESSANDO O SISTEMA
+--------------------------------------------------------------------
+Após rodar os dois comandos, abra o seu navegador no endereço fornecido 
+pelo Vite (geralmente http://localhost:5173).
+
+Você poderá navegar entre as telas através do menu superior:
+ - Painel M.C.
+ - Telão Público
+ - Tela Jurado
+====================================================================
