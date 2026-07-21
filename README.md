@@ -5,7 +5,7 @@
 ![CSS3](https://img.shields.io/badge/CSS3-1572B6?style=for-the-badge&logo=css3&logoColor=white)
 ![License](https://img.shields.io/badge/License-MIT-green.svg?style=for-the-badge)
 
-Um sistema web completo para gerenciamento, controle de jurados e exibição dinâmica de chaves de batalhas de Breaking em tempo real para eventos de Hip-Hop.
+Um App completo para gerenciamento, controle de jurados e exibição dinâmica de chaves de batalhas de Breaking em tempo real para eventos de Hip-Hop.
 
 ---
 
