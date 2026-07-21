@@ -114,4 +114,3 @@ Você poderá navegar entre as telas através do menu superior:
  - Painel M.C.
  - Telão Público
  - Tela Jurado
-====================================================================
