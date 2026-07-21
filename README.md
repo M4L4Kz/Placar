@@ -11,7 +11,7 @@ Um App completo para gerenciamento, controle de jurados e exibição dinâmica d
 
 ## 📌 Sobre o Projeto
 
-O **Breaking Battles** foi idealizado para modernizar a organização de campeonatos de Breaking, eliminando papeis e planilhas manuais. O sistema conta com uma interface no estilo *underground/street*, trazendo uma experiência fluida para a comissão organizadora quanto para o público que acompanha o evento pelo telão.
+O **Breaking Battles** foi idealizado para modernizar a organização de campeonatos de Breaking, eliminando papeis e planilhas manuais. O sistema conta com uma interface no estilo *hip-hop*, trazendo uma experiência fluida para a comissão organizadora quanto para o público que acompanha o evento pelo telão.
 
 ---
 
