@@ -32,8 +32,10 @@ O **Breaking Battles** foi idealizado para modernizar a organização de campeon
   * Visualização gráfica em tempo real do progresso das chaves (da esquerda para a direita).
   * Design minimalista e urbano (*street art style*).
   * Destaque automático para a batalha ativa e indicação do campeão com troféu 🏆.
+  
   ->Ciclo de câmeras ativas na batalha
   ->Animação para chamada das batalhas
+  
 <img width="1327" height="645" alt="image" src="https://github.com/user-attachments/assets/85e172e2-ce62-4853-b50d-4369e61d9708" />
 
 ---
