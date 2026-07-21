@@ -11,7 +11,7 @@ Um sistema web completo para gerenciamento, controle de jurados e exibição din
 
 ## 📌 Sobre o Projeto
 
-O **Breaking Battles** foi idealizado para modernizar a organização de campeonatos de Breaking, eliminando papeis e planilhas manuais. O sistema conta com uma interface no estilo *underground/street*, trazendo uma experiência fluida tanto para o M.C., jurados e comissão organizadora, quanto para o público que acompanha o evento pelo telão.
+O **Breaking Battles** foi idealizado para modernizar a organização de campeonatos de Breaking, eliminando papeis e planilhas manuais. O sistema conta com uma interface no estilo *underground/street*, trazendo uma experiência fluida para a comissão organizadora quanto para o público que acompanha o evento pelo telão.
 
 ---
 
@@ -20,11 +20,11 @@ O **Breaking Battles** foi idealizado para modernizar a organização de campeon
 * 🎙️ **Painel do M.C. / Operador:**
   * Configuração de chaves (Top 16, Top 8, Top 4).
   * Inserção e sorteio de B-Boys / B-Girls.
-  * Controle de batalhas ativas e avanços automáticos.
+  * Controle de batalhas ativas.
 * ⚖️ **Tela dos Jurados:**
   * Votação intuitiva e ágil para avaliação das entradas (*rounds*).
   * Envio de votos em tempo real.
-* 📺 **Telão Público (Visual JerioStyle):**
+* 📺 **Telão Público:**
   * Visualização gráfica em tempo real do progresso das chaves (da esquerda para a direita).
   * Design minimalista e urbano (*street art style*).
   * Integração da logo via CSS `mix-blend-mode` para mesclagem perfeita no *dark mode*.
