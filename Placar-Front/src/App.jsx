@@ -4,8 +4,13 @@ import ControleMC from './paginas/ControleMC';
 import Telao from './paginas/Telao';
 import Jurado from './paginas/Jurado';
 
-// Conecta ao backend Node.js na porta 3000
-const socket = io('http://localhost:3000');
+
+// Pega a URL da Vercel em produção OU usa localhost se estiver rodando na sua máquina
+const BACKEND_URL = import.meta.env.VITE_API_URL || 'http://localhost:3000';
+
+// Conexão com o Socket.io ou Axios
+export const socket = io(BACKEND_URL);
+
 
 function App() {
   const [telaAtiva, setTelaAtiva] = useState('mc'); // mc, telao, jurado

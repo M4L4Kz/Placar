@@ -5,20 +5,23 @@ import cors from 'cors';
 import { gerarChavesTorneio } from './utils/torneio.js';
 
 const app = express();
+
+// Libera CORS para requisições HTTP REST
 app.use(cors());
-app.use(express.json());
+app.use(express.json()); // Permite ler JSON no corpo da requisição (req.body)
 
-const httpServer = createServer(app);
+const server = createServer(app);
 
-// Configuração do Socket.io permitindo conexões de qualquer origem (importante para a rede local)
-const io = new Server(httpServer, {
+// Configuração do Socket.io permitindo conexões de qualquer origem (Vercel, Local, etc)
+const io = new Server(server, {
   cors: {
-    origin: "*",
+    origin: "*", 
     methods: ["GET", "POST"]
   }
 });
 
-const PORT = 3000;
+// O Render injeta automaticamente a variável process.env.PORT
+const PORT = process.env.PORT || 3000;
 
 // Estado Global do Torneio em Memória
 let estadoTorneio = {
@@ -35,7 +38,6 @@ let estadoTorneio = {
 
 // 1. ROTA PARA RESETAR TOTALMENTE O TORNEIO
 app.post('/api/resetar', (req, res) => {
-  // Restaura o estado inicial do sistema
   estadoTorneio = {
     config: {
       totalCompetidores: 8,
@@ -46,7 +48,6 @@ app.post('/api/resetar', (req, res) => {
     batalhaAtual: null
   };
 
-  // Notifica todas as telas que o torneio foi limpo
   io.emit('atualizacao_torneio', estadoTorneio);
   return res.json({ mensagem: 'Torneio resetado com sucesso.', estado: estadoTorneio });
 });
@@ -62,7 +63,6 @@ app.post('/api/pular-batalha', (req, res) => {
   const batalhaAtual = estadoTorneio.batalhas[idAtual];
   const roundAtual = batalhaAtual.round;
 
-  // Busca todas as batalhas do mesmo round que ainda NÃO têm vencedor
   const batalhasDoRoundSemVencedor = Object.values(estadoTorneio.batalhas).filter(
     b => b.round === roundAtual && !b.vencedor
   );
@@ -71,14 +71,10 @@ app.post('/api/pular-batalha', (req, res) => {
     return res.status(400).json({ erro: 'Não há outras batalhas pendentes neste round para trocar a ordem.' });
   }
 
-  // Encontra a próxima batalha pendente do mesmo round para assumir o palco agora
   const proximaPendente = batalhasDoRoundSemVencedor.find(b => b.id !== idAtual);
 
   if (proximaPendente) {
-    // A batalha atual troca de posição com a próxima pendente
     estadoTorneio.batalhaAtual = proximaPendente.id;
-
-    // Notifica as telas via WebSocket
     io.emit('atualizacao_torneio', estadoTorneio);
     return res.json({ mensagem: 'Batalha enviada para o final da fila do round.', estado: estadoTorneio });
   }
@@ -86,7 +82,7 @@ app.post('/api/pular-batalha', (req, res) => {
   return res.status(400).json({ erro: 'Não foi possível reordenar as batalhas.' });
 });
 
-// Rota para o M.C. salvar a configuração inicial e a lista de competidores
+// Rota para o M.C. salvar a configuração inicial
 app.post('/api/configurar', (req, res) => {
   const { totalCompetidores, competidores } = req.body;
 
@@ -100,23 +96,18 @@ app.post('/api/configurar', (req, res) => {
   estadoTorneio.batalhas = {};
   estadoTorneio.batalhaAtual = null;
 
-  // Avisa todas as telas conectadas que a configuração mudou (ex: Telão volta a mostrar a logo FBDD)
   io.emit('atualizacao_torneio', estadoTorneio);
-
   return res.json({ mensagem: 'Torneio configurado com sucesso!', estado: estadoTorneio });
 });
 
 // Rota para o M.C. realizar o sorteio aleatório das chaves
 app.post('/api/sortear', (req, res) => {
-  const { totalCompetidores, competidores } = estadoTorneio.config;
-  
   if (estadoTorneio.competidores.length !== estadoTorneio.config.totalCompetidores) {
     return res.status(400).json({ 
-      erro: `A quantidade de competidores inserida (${estadoTorneio.competidores.length}) não bate com o tamanho da chave selecionada (${estadoTorneio.config.totalCompetidores}).` 
+      erro: `A quantidade de competidores (${estadoTorneio.competidores.length}) não bate com a chave (${estadoTorneio.config.totalCompetidores}).` 
     });
   }
 
-  // Gera as chaves usando nossa utilidade matemática
   const chavesGeradas = gerarChavesTorneio(
     estadoTorneio.config.totalCompetidores, 
     estadoTorneio.competidores
@@ -124,17 +115,13 @@ app.post('/api/sortear', (req, res) => {
 
   estadoTorneio.batalhas = chavesGeradas;
   estadoTorneio.config.status = 'sorteado';
-  
-  // Define automaticamente a primeira batalha do Round 1 como a batalha inicial ativa
   estadoTorneio.batalhaAtual = 'r1_b1';
 
-  // Dispara via WebSocket para o Telão e todas as telas atualizarem instantaneamente!
   io.emit('atualizacao_torneio', estadoTorneio);
-
   return res.json({ mensagem: 'Sorteio realizado com sucesso!', estado: estadoTorneio });
 });
 
-// Rota simplificada para o jurado enviar o voto
+// Rota para o jurado enviar o voto
 app.post('/api/votar', (req, res) => {
   const { juradoId, voto } = req.body;
   const idBatalha = estadoTorneio.batalhaAtual;
@@ -153,10 +140,11 @@ app.post('/api/votar', (req, res) => {
     return res.status(400).json({ erro: 'Voto inválido.' });
   }
 
-  // Registra ou atualiza o voto do jurado
+  if (!batalha.votos) batalha.votos = [];
+
   const votoExistenteIndex = batalha.votos.findIndex(v => v.juradoId === juradoId);
   if (votoExistenteIndex !== -1) {
-    batalha.votoExistenteIndex = voto; // atualiza se já votou
+    batalha.votos[votoExistenteIndex].escolha = voto;
   } else {
     if (batalha.votos.length >= 3) {
       return res.status(400).json({ erro: 'Esta batalha já possui 3 votos.' });
@@ -164,7 +152,6 @@ app.post('/api/votar', (req, res) => {
     batalha.votos.push({ juradoId, escolha: voto });
   }
 
-  // Se bateu 3 votos, calcula o vencedor na hora
   if (batalha.votos.length === 3) {
     const contagem = batalha.votos.reduce((acc, v) => {
       acc[v.escolha] = (acc[v.escolha] || 0) + 1;
@@ -174,13 +161,11 @@ app.post('/api/votar', (req, res) => {
     batalha.vencedor = contagem.player1 > contagem.player2 ? 'player1' : 'player2';
   }
 
-  // Dispara o estado atualizado para todas as telas via WebSocket
   io.emit('atualizacao_torneio', estadoTorneio);
-
   return res.json({ mensagem: 'Voto computado com sucesso!', estado: estadoTorneio });
 });
 
-// Rota direta para o M.C. avançar o torneio de forma manual
+// Rota para avançar o torneio
 app.post('/api/proxima-batalha', (req, res) => {
   const idBatalhaAtual = estadoTorneio.batalhaAtual;
   
@@ -197,7 +182,6 @@ app.post('/api/proxima-batalha', (req, res) => {
   const nomeVencedor = batalhaAtual[batalhaAtual.vencedor];
   const proximaBatalhaId = batalhaAtual.proximaBatalha;
 
-  // Injeta o vencedor na vaga correta da próxima rodada
   if (proximaBatalhaId && estadoTorneio.batalhas[proximaBatalhaId]) {
     const proximaBatalha = estadoTorneio.batalhas[proximaBatalhaId];
     if (!proximaBatalha.player1) {
@@ -207,7 +191,6 @@ app.post('/api/proxima-batalha', (req, res) => {
     }
   }
 
-  // Calcula cronologicamente qual é a próxima batalha ativa
   const [roundAtual, numeroBatalhaAtual] = idBatalhaAtual.replace('r', '').split('_b').map(Number);
   let proximoIdBatalhaAtiva = `r${roundAtual}_b${numeroBatalhaAtual + 1}`;
 
@@ -222,36 +205,31 @@ app.post('/api/proxima-batalha', (req, res) => {
     estadoTorneio.config.status = 'finalizado';
   }
 
-  // Envia o estado atualizado com as chaves preenchidas e o novo ponteiro de batalha ativa
   io.emit('atualizacao_torneio', estadoTorneio);
-
   return res.json({ mensagem: 'Torneio avançado.', estado: estadoTorneio });
 });
 
-// Rota para o M.C. dar o pontapé inicial após o sorteio
+// Rota para dar o pontapé inicial
 app.post('/api/iniciar-batalhas', (req, res) => {
   if (estadoTorneio.config.status !== 'sorteado') {
     return res.status(400).json({ erro: 'O torneio precisa estar sorteado para iniciar.' });
   }
 
   estadoTorneio.config.status = 'em_andamento';
-  estadoTorneio.batalhaAtual = 'r1_b1'; // Garante o foco na primeira batalha
+  estadoTorneio.batalhaAtual = 'r1_b1';
 
   io.emit('atualizacao_torneio', estadoTorneio);
   return res.json({ mensagem: 'Batalhas iniciadas!', estado: estadoTorneio });
 });
 
-// Rota para buscar o estado atual (útil quando uma tela atualiza o navegador)
+// Rota para buscar estado atual
 app.get('/api/estado', (req, res) => {
   res.json(estadoTorneio);
 });
 
-
-// --- COMUNICAÇÃO EM TEMPO REAL (SOCKET.IO) ---
+// --- COMUNICAÇÃO WEBSOCKET ---
 io.on('connection', (socket) => {
-  console.log(`Novo dispositivo conectado: ${socket.id}`);
-
-  // Envia o estado atual do torneio assim que um cliente se conecta
+  console.log(`Dispositivo conectado: ${socket.id}`);
   socket.emit('atualizacao_torneio', estadoTorneio);
 
   socket.on('disconnect', () => {
@@ -259,10 +237,9 @@ io.on('connection', (socket) => {
   });
 });
 
-// Inicia o servidor na porta 3000
-httpServer.listen(PORT, () => {
+// Inicia o servidor usando 'server.listen'
+server.listen(PORT, () => {
   console.log(`==================================================`);
   console.log(`🔥 Servidor rodando na porta ${PORT}`);
-  console.log(`Acesse localmente em: http://localhost:${PORT}`);
   console.log(`==================================================`);
 });
