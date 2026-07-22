@@ -30,9 +30,9 @@ function App() {
     <div style={{ fontFamily: 'sans-serif', minHeight: '100vh', backgroundColor: '#121212', color: '#fff' }}>
       {/* Menu Superior Temporário para Navegarmos entre as Telas no desenvolvimento */}
       <nav style={{ background: '#1f1f1f', padding: '10px', display: 'flex', gap: '10px', justifyContent: 'center' }}>
-        <button onClick={() => setTelaAtiva('mc')} style={btnNavStyle(telaAtiva === 'mc')}>🎤 Painel M.C.</button>
-        <button onClick={() => setTelaAtiva('telao')} style={btnNavStyle(telaAtiva === 'telao')}>📺 Telão Público</button>
-        <button onClick={() => setTelaAtiva('jurado')} style={btnNavStyle(telaAtiva === 'jurado')}>⚖️ Tela Jurado</button>
+        <button onClick={() => setTelaAtiva('mc')} style={btnNavStyle(telaAtiva === 'mc')}>🎤  M.C.</button>
+        <button onClick={() => setTelaAtiva('telao')} style={btnNavStyle(telaAtiva === 'telao')}>📺 </button>
+        <button onClick={() => setTelaAtiva('jurado')} style={btnNavStyle(telaAtiva === 'jurado')}>⚖️ Judges</button>
       </nav>
 
       {/* Renderização Condicional da Tela Selecionada */}
