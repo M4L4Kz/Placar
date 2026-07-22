@@ -8,7 +8,7 @@ function Telao({ estado }) {
     return (
       <div className="telao-jerio" style={{ paddingTop: '50px' }}>
         <img src={logoImg} alt="Logo FBDD" className="jerio-logo-center" style={{ maxWidth: '280px', maxHeight: '280px' }} />
-        <h1 className="jerio-round-title" style={{ marginTop: '20px', fontSize: '2.5rem' }}>FBDD BREAKING</h1>
+        <h1 className="jerio-round-title" style={{ marginTop: '20px', fontSize: '2.5rem' }}>BREAKING BATTLES</h1>
         <p style={{ fontFamily: 'Permanent Marker', color: '#888', fontSize: '1.2rem', marginTop: '10px' }}>
           AGUARDANDO SORTEIO DAS CHAVES
         </p>
