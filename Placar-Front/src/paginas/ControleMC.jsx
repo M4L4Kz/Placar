@@ -1,4 +1,5 @@
 import React, { useState } from 'react';
+import { BACKEND_URL } from '../App'; // Importa a URL dinâmica do backend
 
 function ControleMC({ estado }) {
   const [total, setTotal] = useState(8);
@@ -18,7 +19,7 @@ function ControleMC({ estado }) {
     }
 
     try {
-      await fetch('http://localhost:3000/api/configurar', {
+      await fetch(`${BACKEND_URL}/api/configurar`, {
         method: 'POST',
         headers: { 'Content-Type': 'application/json' },
         body: JSON.stringify({ totalCompetidores: total, competidores: listaNomes })
@@ -30,7 +31,7 @@ function ControleMC({ estado }) {
 
   const handleSortear = async () => {
     try {
-      await fetch('http://localhost:3000/api/sortear', { method: 'POST' });
+      await fetch(`${BACKEND_URL}/api/sortear`, { method: 'POST' });
     } catch (err) {
       console.error(err);
     }
@@ -38,7 +39,7 @@ function ControleMC({ estado }) {
 
   const handleIniciarTorneio = async () => {
     try {
-      await fetch('http://localhost:3000/api/iniciar-batalhas', { method: 'POST' });
+      await fetch(`${BACKEND_URL}/api/iniciar-batalhas`, { method: 'POST' });
     } catch (err) {
       console.error(err);
     }
@@ -46,7 +47,7 @@ function ControleMC({ estado }) {
 
   const handleProximaBatalha = async () => {
     try {
-      await fetch('http://localhost:3000/api/proxima-batalha', { method: 'POST' });
+      await fetch(`${BACKEND_URL}/api/proxima-batalha`, { method: 'POST' });
     } catch (err) {
       console.error(err);
     }
@@ -56,7 +57,7 @@ function ControleMC({ estado }) {
   const handlePularBatalha = async () => {
     if (window.confirm('Deseja pular esta batalha e enviá-la para o final da fila do round?')) {
       try {
-        const response = await fetch('http://localhost:3000/api/pular-batalha', { method: 'POST' });
+        const response = await fetch(`${BACKEND_URL}/api/pular-batalha`, { method: 'POST' });
         if (!response.ok) {
           const dados = await response.json();
           alert(dados.erro || 'Não foi possível pular a batalha.');
@@ -67,11 +68,11 @@ function ControleMC({ estado }) {
     }
   };
 
-  // Reseta completamente o torneio de volta para a escolha das chaves
+  // Reseta completamente o torneio
   const handleResetarTorneio = async () => {
     if (window.confirm('⚠️ ATENÇÃO: Tem certeza que deseja RESETAR todo o torneio? Todos os dados e chaves atuais serão apagados!')) {
       try {
-        await fetch('http://localhost:3000/api/resetar', { method: 'POST' });
+        await fetch(`${BACKEND_URL}/api/resetar`, { method: 'POST' });
         setNomesInput('');
         setErro('');
       } catch (err) {
@@ -153,7 +154,7 @@ function ControleMC({ estado }) {
             </h3>
 
             <p style={{ fontWeight: 'bold', color: '#aaa', margin: '5px 0' }}>
-              Votos Recebidos: <span style={{ color: '#00adb5' }}>{estado.batalhas[estado.batalhaAtual]?.votos.length} / 3</span>
+              Votos Recebidos: <span style={{ color: '#00adb5' }}>{estado.batalhas[estado.batalhaAtual]?.votos?.length || 0} / 3</span>
             </p>
             
             {estado.batalhas[estado.batalhaAtual]?.vencedor && (
@@ -164,7 +165,6 @@ function ControleMC({ estado }) {
           </div>
 
           <div style={{ display: 'flex', flexDirection: 'column', gap: '10px' }}>
-            {/* Botão de Avançar */}
             <button 
               onClick={handleProximaBatalha} 
               disabled={!estado.batalhas[estado.batalhaAtual]?.vencedor}
@@ -173,7 +173,6 @@ function ControleMC({ estado }) {
               ⏭️ Chamar Próxima Batalha
             </button>
 
-            {/* Botão de Pular para o Fim da Fila */}
             <button 
               onClick={handlePularBatalha} 
               style={{ ...btnStyle('#d97706'), background: '#27272a', border: '1px solid #d97706', color: '#f59e0b' }}

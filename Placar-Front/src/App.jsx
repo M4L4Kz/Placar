@@ -4,10 +4,11 @@ import ControleMC from './paginas/ControleMC';
 import Telao from './paginas/Telao';
 import Jurado from './paginas/Jurado';
 
-// 1. Tenta ler a variável da Vercel. Se não encontrar, usa direto o servidor do Render!
-export const BACKEND_URL = import.meta.env.VITE_API_URL || 'https://breaking-battles-api.onrender.com';
+// Pega a URL do ambiente, remove barras no final se houver
+const rawUrl = import.meta.env.VITE_API_URL || 'https://breaking-battles-api.onrender.com';
+export const BACKEND_URL = rawUrl.trim().replace(/\/+$/, '');
 
-// 2. Conexão com o Socket.io forçando WebSocket e Polling para garantir compatibilidade em nuvem
+// Inicializa o socket garantindo a URL limpa
 export const socket = io(BACKEND_URL, {
   transports: ['websocket', 'polling']
 });
