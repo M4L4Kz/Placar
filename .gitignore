@@ -2,6 +2,7 @@
 .env
 .env.local
 *.env
+Placar-Front/.env
 
 # Dependências do Node (não devem subir para o GitHub)
 node_modules/
