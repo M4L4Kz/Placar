@@ -6,7 +6,9 @@ import Jurado from './paginas/Jurado';
 
 
 
-export const BACKEND_URL = import.meta.env.VITE_API_URL || 'http://localhost:3000';
+// Pega a URL, remove espaços acidentais e barras extras no final
+const rawUrl = import.meta.env.VITE_API_URL || 'http://localhost:3000';
+export const BACKEND_URL = rawUrl.trim().replace(/\/+$/, '');
 
 export const socket = io(BACKEND_URL, {
   transports: ['websocket', 'polling']
