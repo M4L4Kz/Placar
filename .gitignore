@@ -1,0 +1,15 @@
+# Arquivos de variáveis de ambiente
+.env
+.env.local
+*.env
+
+# Dependências do Node (não devem subir para o GitHub)
+node_modules/
+
+# Builds / arquivos compilados
+dist/
+build/
+
+# Arquivos do sistema operacional e editores
+.DS_Store
+.vscode/
