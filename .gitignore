@@ -1,16 +1,8 @@
-# Arquivos de variáveis de ambiente
+# Ignora qualquer arquivo .env em qualquer pasta
 .env
-.env.local
 *.env
-Placar-Front/.env
+**/.env
 
-# Dependências do Node (não devem subir para o GitHub)
+# Ignora dependências
 node_modules/
-
-# Builds / arquivos compilados
-dist/
-build/
-
-# Arquivos do sistema operacional e editores
-.DS_Store
-.vscode/
+**/node_modules/
