@@ -4,13 +4,14 @@ import ControleMC from './paginas/ControleMC';
 import Telao from './paginas/Telao';
 import Jurado from './paginas/Jurado';
 
-// 1. URL Direta e Limpa do Render para não ter falha no Socket
-export const BACKEND_URL = 'https://breaking-battles-api.onrender.com';
 
-// 2. Conexão do Socket com fallback de Polling (Garante conexao em serviços em nuvem)
+
+export const BACKEND_URL = import.meta.env.VITE_API_URL || 'http://localhost:3000';
+
 export const socket = io(BACKEND_URL, {
   transports: ['websocket', 'polling']
 });
+
 
 function App() {
   const [telaAtiva, setTelaAtiva] = useState('mc'); // mc, telao, jurado
